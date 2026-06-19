@@ -1,0 +1,17 @@
+# Dashboard Node
+node_modules/
+.next/
+.env.local
+.env
+public/firmware/*.enc.bin
+public/firmware/*.bin
+
+# Firmware ESP-IDF
+build/
+sdkconfig
+sdkconfig.old
+managed_components/
+dependencies.lock
+*.bin
+*.elf
+*.map
