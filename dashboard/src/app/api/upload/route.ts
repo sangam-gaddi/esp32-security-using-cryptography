@@ -7,19 +7,21 @@ import path from 'path';
 
 export async function POST(request: NextRequest) {
   try {
-    // await dbConnect(); // Disabled for local testing
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const versionStr = formData.get('version') as string;
-
-    if (!file || !versionStr) {
-      return NextResponse.json({ error: 'File and version are required' }, { status: 400 });
+    await dbConnect(); // Enabled for real storage
+    
+    // Read version from query params
+    const versionStr = request.nextUrl.searchParams.get('version');
+    if (!versionStr) {
+      return NextResponse.json({ error: 'Version query parameter is required' }, { status: 400 });
     }
 
     const version = parseInt(versionStr, 10);
     
-    // Read the file into a Node.js Buffer
-    const arrayBuffer = await file.arrayBuffer();
+    // Read the raw binary stream perfectly without any multipart parsing corruption!
+    const arrayBuffer = await request.arrayBuffer();
+    if (arrayBuffer.byteLength === 0) {
+      return NextResponse.json({ error: 'File body is empty' }, { status: 400 });
+    }
     const rawBuffer = Buffer.from(arrayBuffer);
 
     // In a real system, the private key would be loaded from a secure vault or .env
@@ -48,8 +50,15 @@ export async function POST(request: NextRequest) {
     fs.writeFileSync(path.join(firmwareDir, encryptedFileName), encryptedBuffer);
     fs.writeFileSync(path.join(firmwareDir, signatureFileName), signature);
 
-    // Save metadata to MongoDB - DISABLED FOR LOCAL TESTING
-    // const newFirmware = await Firmware.create({ ... });
+    // Save metadata to MongoDB
+    const newFirmware = await Firmware.create({
+      version,
+      sha256Hash,
+      encryptedFileUrl: `/firmware/${encryptedFileName}`,
+      signatureFileUrl: `/firmware/${signatureFileName}`,
+      aesKeyHex: aesKey.toString('hex'),
+      ivHex: iv.toString('hex'),
+    });
 
     return NextResponse.json({
       success: true,

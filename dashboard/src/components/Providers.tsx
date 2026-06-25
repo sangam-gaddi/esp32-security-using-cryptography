@@ -5,7 +5,7 @@ import {
   getDefaultConfig,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
+import { WagmiProvider, http } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 import {
   QueryClientProvider,
@@ -16,6 +16,9 @@ const config = getDefaultConfig({
   appName: 'Secure OTA Admin',
   projectId: 'YOUR_PROJECT_ID', // Replace with a WalletConnect project ID in production
   chains: [sepolia],
+  transports: {
+    [sepolia.id]: http('https://ethereum-sepolia-rpc.publicnode.com'),
+  },
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 

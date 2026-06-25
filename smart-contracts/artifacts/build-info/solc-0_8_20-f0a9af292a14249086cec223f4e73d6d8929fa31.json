@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_20-f0a9af292a14249086cec223f4e73d6d8929fa31",
+  "solcVersion": "0.8.20",
+  "solcLongVersion": "0.8.20+commit.a1b79de6",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/SecureOTARegistry.sol": "project/contracts/SecureOTARegistry.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/SecureOTARegistry.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ncontract SecureOTARegistry {\n    address public admin;\n\n    struct FirmwareRelease {\n        uint256 version;\n        bytes32 sha256Hash;\n        uint256 timestamp;\n        string downloadUrl;\n    }\n\n    mapping(uint256 => FirmwareRelease) private _releases;\n    uint256 public latestVersion;\n\n    event FirmwarePublished(uint256 indexed version, bytes32 sha256Hash, string downloadUrl);\n\n    modifier onlyAdmin() {\n        require(msg.sender == admin, \"Caller is not the authorized administrator\");\n        _;\n    }\n\n    constructor() {\n        admin = msg.sender;\n    }\n\n    function publishRelease(uint256 _version, bytes32 _hash, string memory _url) external onlyAdmin {\n        require(_version > latestVersion, \"Version must be monotonic increasing\");\n        require(_hash != bytes32(0), \"Invalid cryptographic hash identity\");\n        \n        _releases[_version] = FirmwareRelease({\n            version: _version,\n            sha256Hash: _hash,\n            timestamp: block.timestamp,\n            downloadUrl: _url\n        });\n        \n        latestVersion = _version;\n        emit FirmwarePublished(_version, _hash, _url);\n    }\n\n    function getRelease(uint256 _version) external view returns (uint256 version, bytes32 sha256Hash, string memory downloadUrl) {\n        FirmwareRelease memory release = _releases[_version];\n        require(release.version != 0, \"Requested firmware release does not exist\");\n        return (release.version, release.sha256Hash, release.downloadUrl);\n    }\n}\n"
+      }
+    }
+  }
+}

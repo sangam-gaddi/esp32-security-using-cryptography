@@ -27,14 +27,7 @@
   "http://10.180.151.5:3000/firmware" // Updated to your PC IP
 #define CONTRACT_ADDRESS "0xYourDeployedContractAddressHere"
 
-#define AES_KEY_HEX "6d2b75893216aa26975e0d6bf566b488"
-#define AES_IV_HEX "0819f33f5f0abad1b2b70136272a1b4a"
-#define PUBLIC_KEY_PEM                                                         \
-  "-----BEGIN PUBLIC "                                                         \
-  "KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEBhARQ61T8RLi5tqFW+"           \
-  "os4rIm37KX\n4PtXFtDONJfw/"                                                  \
-  "zYhImNLP1nWaanm6cWyCysO3PGAThroKkBeRUrEKFXbXw==\n-----END PUBLIC "          \
-  "KEY-----\n"
+#include "ota_keys.h"
 
 static const char *TAG = "SECURE_OTA";
 
