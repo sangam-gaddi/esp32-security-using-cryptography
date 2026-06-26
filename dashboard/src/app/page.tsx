@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UploadCloud, CheckCircle, Loader2, Key, ShieldCheck, XCircle, BotMessageSquare, Send, User, Download, Moon, Sun, Wifi, ShieldAlert, Cpu, FolderOpen } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
-const CONTRACT_ADDRESS = '0x4dcbF6a124764b2af85Ca770fe3024246Dfb7948';
 const API_KEY = "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";
 
 type Message = {
@@ -65,7 +64,15 @@ export default function Home() {
   useEffect(() => {
     // Startup greeting
     startAiChatSession('startup');
+    const savedAddress = localStorage.getItem('contractAddress');
+    if (savedAddress) setAdminAddress(savedAddress);
   }, []);
+
+  useEffect(() => {
+    if (adminAddress) {
+      localStorage.setItem('contractAddress', adminAddress);
+    }
+  }, [adminAddress]);
 
   const handlePublishFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -105,13 +112,17 @@ export default function Home() {
 
   const handlePublishToWeb3 = () => {
     if (!uploadResult) return;
+    if (!adminAddress) {
+      alert("Please go to the Setup tab and enter or deploy a Smart Contract Address first!");
+      return;
+    }
     const formattedHash = uploadResult.data.sha256Hash.startsWith('0x') 
       ? uploadResult.data.sha256Hash 
       : `0x${uploadResult.data.sha256Hash}`;
       
     try {
       writeContract({
-        address: CONTRACT_ADDRESS as `0x${string}`,
+        address: adminAddress as `0x${string}`,
         abi: secureOtaRegistryAbi,
         functionName: 'publishRelease',
         args: [BigInt(uploadResult.data.version), formattedHash as `0x${string}`, uploadResult.data.encryptedFileUrl],
@@ -230,10 +241,16 @@ export default function Home() {
 
       await new Promise(resolve => setTimeout(resolve, 800));
 
+      if (!adminAddress) {
+        alert("Please set a Contract Address in the Setup tab first.");
+        setIsVerifying(false);
+        return;
+      }
+
       // 2. Read from Smart Contract
       setVerifyingStep(`Fetching trusted hash from Sepolia Smart Contract for Version ${verifyVersion}...`);
       const data = await publicClient.readContract({
-        address: CONTRACT_ADDRESS as `0x${string}`,
+        address: adminAddress as `0x${string}`,
         abi: secureOtaRegistryAbi,
         functionName: 'getRelease',
         args: [BigInt(verifyVersion)]
