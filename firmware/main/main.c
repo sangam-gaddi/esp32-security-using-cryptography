@@ -85,22 +85,8 @@ void ota_task(void *pvParameter) {
   mbedtls_aes_context aes_ctx;
   mbedtls_aes_init(&aes_ctx);
 
-  unsigned char aes_key[16];
-  unsigned char aes_iv[16];
-
-// Helper lambda to parse hex
-#define CHAR_TO_HEX(c)                                                         \
-  ((c) >= '0' && (c) <= '9'                                                    \
-       ? (c) - '0'                                                             \
-       : ((c) >= 'a' && (c) <= 'f'                                             \
-              ? (c) - 'a' + 10                                                 \
-              : ((c) >= 'A' && (c) <= 'F' ? (c) - 'A' + 10 : 0)))
-  for (int i = 0; i < 16; i++) {
-    aes_key[i] = (CHAR_TO_HEX(AES_KEY_HEX[2 * i]) << 4) |
-                 CHAR_TO_HEX(AES_KEY_HEX[2 * i + 1]);
-    aes_iv[i] = (CHAR_TO_HEX(AES_IV_HEX[2 * i]) << 4) |
-                CHAR_TO_HEX(AES_IV_HEX[2 * i + 1]);
-  }
+  unsigned char local_aes_iv[16];
+  memcpy(local_aes_iv, aes_iv, 16);
 
   mbedtls_aes_setkey_enc(&aes_ctx, aes_key,
                          128); // CTR requires the encryption key schedule
@@ -150,7 +136,7 @@ void ota_task(void *pvParameter) {
     }
 
     // Decrypt chunk using CTR mode
-    mbedtls_aes_crypt_ctr(&aes_ctx, read_len, &nc_off, aes_iv, stream_block,
+    mbedtls_aes_crypt_ctr(&aes_ctx, read_len, &nc_off, local_aes_iv, stream_block,
                           enc_buf, dec_buf);
 
     if (bytes_read == 0) {

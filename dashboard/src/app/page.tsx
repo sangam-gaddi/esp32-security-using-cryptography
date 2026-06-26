@@ -44,6 +44,7 @@ export default function Home() {
   const [privateKey, setPrivateKey] = useState('');
   const [projectPath, setProjectPath] = useState('');
   const [isApplying, setIsApplying] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
 
   // AI Chat State
   const [messages, setMessages] = useState<Message[]>([]);
@@ -178,6 +179,38 @@ export default function Home() {
     }
   };
 
+  const deploySmartContract = async () => {
+    if (!privateKey || !projectPath) {
+      alert("Please provide both Project Path and Private Key first.");
+      return;
+    }
+
+    setIsDeploying(true);
+    try {
+      const res = await fetch('/api/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          privateKey,
+          projectPath
+        })
+      });
+
+      const data = await res.json();
+      if (data.success && data.contractAddress) {
+        setAdminAddress(data.contractAddress);
+        startAiChatSession('deploy_success', null, undefined, undefined, undefined, undefined, undefined, data.contractAddress);
+      } else {
+        alert("Deployment failed: " + (data.error || 'Unknown error') + "\nCheck console for details.");
+        console.error("Deployment output:", data.output, data.stderr);
+      }
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsDeploying(false);
+    }
+  };
+
   const handleVerify = async () => {
     if (!verifyFile || !verifyVersion || !publicClient) return;
     setIsVerifying(true);
@@ -232,7 +265,7 @@ export default function Home() {
     }
   };
 
-  const startAiChatSession = async (action: 'startup' | 'publish' | 'verify' | 'setup_applied', buffer?: ArrayBuffer | null, version?: string, localHash?: string, web3Hash?: string, isMatch?: boolean, ssid?: string, admin?: string) => {
+  const startAiChatSession = async (action: 'startup' | 'publish' | 'verify' | 'setup_applied' | 'deploy_success', buffer?: ArrayBuffer | null, version?: string, localHash?: string, web3Hash?: string, isMatch?: boolean, ssid?: string, admin?: string) => {
     setIsAnalyzing(true);
     
     let prompt = "";
@@ -250,6 +283,8 @@ export default function Home() {
       }
     } else if (action === 'setup_applied') {
       prompt = `I just automatically applied the new WiFi config ("${ssid}") and Sepolia Contract ("${admin}") directly to my local project files! The private key is also saved in .env. Give a brief security tip on storing .env files securely.`;
+    } else if (action === 'deploy_success') {
+      prompt = `I just deployed a new SecureOTARegistry contract to Sepolia at address ${admin}! The dashboard auto-filled it for me. Give me a brief security tip on monitoring smart contract activity.`;
     }
 
     const newMessage: Message = { role: 'user', content: prompt };
@@ -578,15 +613,25 @@ export default function Home() {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Sepolia Private Key</label>
-                    <div className="relative">
-                      <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <input 
-                        type="password" 
-                        className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50 font-mono text-sm transition-colors"
-                        placeholder="Your Wallet Private Key"
-                        value={privateKey}
-                        onChange={(e) => setPrivateKey(e.target.value)}
-                      />
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <input 
+                          type="password" 
+                          className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50 font-mono text-sm transition-colors"
+                          placeholder="Your Wallet Private Key"
+                          value={privateKey}
+                          onChange={(e) => setPrivateKey(e.target.value)}
+                        />
+                      </div>
+                      <button 
+                        onClick={deploySmartContract}
+                        disabled={!privateKey || !projectPath || isDeploying}
+                        className="px-6 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl disabled:opacity-50 transition-colors flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium"
+                      >
+                        {isDeploying ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+                        {isDeploying ? 'Deploying...' : 'Deploy Contract'}
+                      </button>
                     </div>
                     <p className="text-xs text-slate-500 mt-2">This will automatically overwrite the SEPOLIA_PRIVATE_KEY in your smart-contracts/.env file.</p>
                   </div>

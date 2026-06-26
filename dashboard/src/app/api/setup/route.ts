@@ -4,11 +4,14 @@ import path from 'path';
 
 export async function POST(req: NextRequest) {
   try {
-    const { wifiSsid, wifiPass, contractAddress, privateKey, projectPath } = await req.json();
+    let { wifiSsid, wifiPass, contractAddress, privateKey, projectPath } = await req.json();
 
     if (!wifiSsid || !wifiPass || !contractAddress || !privateKey || !projectPath) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
+
+    // Strip surrounding quotes from projectPath if any
+    projectPath = projectPath.replace(/^["'](.*)["']$/, '$1');
 
     // 1. Modify firmware/main/main.c
     const projectRoot = path.resolve(process.cwd(), projectPath); // Resolves relative to dashboard root

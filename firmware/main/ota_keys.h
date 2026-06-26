@@ -6,20 +6,49 @@
 
 // AES-128-CTR Decryption Key
 static const unsigned char aes_key[16] = {
-    0xad,\n    0x79,\n    0x9b,\n    0x82,\n    0xf7,\n    0xa8,\n    0x20,\n    0x82,\n    0xcb,\n    0x52,\n    0x4d,\n    0x91,\n    0x20,\n    0xc8,\n    0x5e,\n    0x50
+    0xad,
+    0x79,
+    0x9b,
+    0x82,
+    0xf7,
+    0xa8,
+    0x20,
+    0x82,
+    0xcb,
+    0x52,
+    0x4d,
+    0x91,
+    0x20,
+    0xc8,
+    0x5e,
+    0x50
 };
 
 // AES-128-CTR Initialization Vector (IV)
 static const unsigned char aes_iv[16] = {
-    0x97,\n    0x1e,\n    0x4c,\n    0x49,\n    0xac,\n    0x24,\n    0x95,\n    0x7a,\n    0x9a,\n    0x03,\n    0x38,\n    0x78,\n    0xe3,\n    0xe1,\n    0x15,\n    0x78
+    0x97,
+    0x1e,
+    0x4c,
+    0x49,
+    0xac,
+    0x24,
+    0x95,
+    0x7a,
+    0x9a,
+    0x03,
+    0x38,
+    0x78,
+    0xe3,
+    0xe1,
+    0x15,
+    0x78
 };
 
 // ECDSA Public Key (Prime256v1 / secp256r1) for Signature Verification
 static const char *public_key_pem = 
-    "-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwhQdrjmDAvjDVVaiMYMN3rB49ZpT
-LQhNsqY16Qh9WHioAc9TBRsemTH7PkEu/sLfTVYF5pqFzbHQruQMlWTLZg==
------END PUBLIC KEY-----
-\n";
+    "-----BEGIN PUBLIC KEY-----\n"
+    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwhQdrjmDAvjDVVaiMYMN3rB49ZpT\n"
+    "LQhNsqY16Qh9WHioAc9TBRsemTH7PkEu/sLfTVYF5pqFzbHQruQMlWTLZg==\n"
+    "-----END PUBLIC KEY-----\n";
 
 #endif // OTA_KEYS_H
